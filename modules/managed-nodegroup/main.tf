@@ -6,6 +6,12 @@ data "aws_iam_role" "worker_iam_role_name" {
   name = var.worker_iam_role_name
 }
 
+data "aws_caller_identity" "current" {}
+
+# variable "aws_account_id" {
+#   default = data.aws_caller_identity.current.account_id
+# }
+
 data "aws_ami" "launch_template_ami" {
   owners      = ["602401143452"]
   most_recent = true
@@ -66,9 +72,47 @@ resource "aws_iam_role_policy_attachment" "eks_worker_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
+# resource "aws_iam_role_policy" "inline_policy_CNI_IPv6" {
+#   count         = var.ipv6_enabled ? 1 : 0
+#   name   = "AmazonEKS_CNI_IPv6_Policy"
+#   role   = var.worker_iam_role_name
+
+#   policy = <<EOF
+# {
+#     "Statement": [
+#         {
+#             "Action": [
+#                 "ec2:DescribeTags",
+#                 "ec2:DescribeNetworkInterfaces",
+#                 "ec2:DescribeInstances",
+#                 "ec2:DescribeInstanceTypes",
+#                 "ec2:AssignIpv6Addresses"
+#             ],
+#             "Effect": "Allow",
+#             "Resource": "*",
+#             "Sid": "AssignDescribe"
+#         },
+#         {
+#             "Action": "ec2:CreateTags",
+#             "Effect": "Allow",
+#             "Resource": "arn:aws:ec2:*:*:network-interface/*",
+#             "Sid": "CreateTags"
+#         }
+#     ],
+#     "Version": "2012-10-17"
+# }
+# EOF
+# }
+
+# resource "aws_iam_role_policy_attachment" "cni_policy" {
+#   role       = var.worker_iam_role_name
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+# }
+
 resource "aws_iam_role_policy_attachment" "cni_policy" {
+  count         = var.ipv6_enabled ? 0 : 1
   role       = var.worker_iam_role_name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  policy_arn = var.ipv6_enabled ? "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/AmazonEKS_CNI_IPv6_Policy" : "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
 resource "aws_iam_role_policy_attachment" "eks_worker_ecr_policy" {
@@ -77,7 +121,7 @@ resource "aws_iam_role_policy_attachment" "eks_worker_ecr_policy" {
 }
 
 data "template_file" "launch_template_userdata" {
-  template = file("${path.module}/templates/custom-bootstrap-script.sh.tpl")
+  template = var.ipv6_enabled ? file("${path.module}/templates/custom-bootstrap-scriptipv6.sh.tpl") : file("${path.module}/templates/custom-bootstrap-script.sh.tpl")
 
   vars = {
     endpoint                     = data.aws_eks_cluster.eks.endpoint

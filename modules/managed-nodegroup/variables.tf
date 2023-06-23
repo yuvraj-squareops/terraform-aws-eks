@@ -142,3 +142,10 @@ variable "worker_iam_role_name" {
   type        = string
   default     = ""
 }
+
+
+variable "ipv6_enabled" {
+  description = "The cluster IPv6 family enable or not"
+  type = bool
+  default = false
+}
