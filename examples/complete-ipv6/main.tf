@@ -9,7 +9,7 @@ locals {
   }
   vpc_cidr           = "10.10.0.0/16"
   vpn_server_enabled = false
-  ipv6_enabled = false
+  ipv6_enabled = true
 }
 
 module "key_pair_vpn" {

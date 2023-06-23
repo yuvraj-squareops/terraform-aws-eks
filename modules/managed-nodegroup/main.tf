@@ -110,7 +110,6 @@ resource "aws_iam_role_policy_attachment" "eks_worker_policy" {
 # }
 
 resource "aws_iam_role_policy_attachment" "cni_policy" {
-  count         = var.ipv6_enabled ? 0 : 1
   role       = var.worker_iam_role_name
   policy_arn = var.ipv6_enabled ? "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/AmazonEKS_CNI_IPv6_Policy" : "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
