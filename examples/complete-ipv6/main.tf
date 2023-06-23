@@ -52,7 +52,7 @@ module "vpc" {
 }
 
 module "eks" {
-  source                               = "../.."
+  source                               = "git::https://github.com/yuvraj-squareops/terraform-aws-eks.git?ref=feature/ipv6-enable"
   depends_on                           = [module.vpc]
   name                                 = local.name
   vpc_id                               = module.vpc.vpc_id
@@ -93,7 +93,7 @@ module "eks" {
 }
 
 module "managed_node_group_production" {
-  source                 = "../../modules/managed-nodegroup"
+  source                 = "git::https://github.com/yuvraj-squareops/terraform-aws-eks.git//modules/managed-nodegroup?ref=feature/ipv6-enable"
   depends_on             = [module.vpc, module.eks]
   name                   = "Infra"
   min_size               = 1
